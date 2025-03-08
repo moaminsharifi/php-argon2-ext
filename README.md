@@ -12,7 +12,7 @@ This PHP7 extension provides a simplified interface to the [Argon2](https://gith
 
 ```bash
 # Clone the extension and the Argon2 Submodule
-git clone --recursive https://github.com/charlesportwoodii/php-argon2-ext
+git clone --recursive https://github.com/moaminsharifi/php-argon2-ext
 cd php-argon2-ext
 
 # Build the Argon2 library
