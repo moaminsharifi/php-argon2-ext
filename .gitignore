@@ -29,3 +29,4 @@ modules/
 run-tests.php
 tmp-php.ini
 config.h.in~
+.idea
