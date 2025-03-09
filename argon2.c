@@ -135,7 +135,7 @@ PHP_FUNCTION(argon2_hash)
 	}
 
 	if (m_cost > ARGON2_MAX_MEMORY || m_cost == 0) {
-		zend_throw_exception(spl_ce_InvalidArgumentException, "Memory cost is not valid", 0 TSRMLS_CC);
+		zend_throw_exception(spl_ce_InvalidArgumentException, "Memory cost is not valid", 0);
 		RETURN_FALSE;
 	}
 
@@ -145,7 +145,7 @@ PHP_FUNCTION(argon2_hash)
 	}
 
 	if (t_cost > ARGON2_MAX_TIME || t_cost == 0) {
-		zend_throw_exception(spl_ce_InvalidArgumentException, "Time cost is not valid", 0 TSRMLS_CC);
+		zend_throw_exception(spl_ce_InvalidArgumentException, "Time cost is not valid", 0);
 		RETURN_FALSE;
 	}
 	
@@ -155,7 +155,7 @@ PHP_FUNCTION(argon2_hash)
 	}
 
 	if (threads > ARGON2_MAX_LANES || threads == 0) {
-		zend_throw_exception(spl_ce_InvalidArgumentException, "Number of threads is not valid", 0 TSRMLS_CC);
+		zend_throw_exception(spl_ce_InvalidArgumentException, "Number of threads is not valid", 0);
 		RETURN_FALSE;
 	}
 
@@ -164,7 +164,7 @@ PHP_FUNCTION(argon2_hash)
 
 	// Sanity check the password for non-zero length
 	if (password_len == 0) {
-		zend_throw_exception(spl_ce_InvalidArgumentException, "Password must be provided", 0 TSRMLS_CC);
+		zend_throw_exception(spl_ce_InvalidArgumentException, "Password must be provided", 0);
 	}
 	
 	// Determine the Algorithm type
@@ -175,7 +175,7 @@ PHP_FUNCTION(argon2_hash)
 	} else if (argon2_type == EXT_HASH_ARGON2D) {
 		type = EXT_HASH_ARGON2D;
 	} else {
-		zend_throw_exception(spl_ce_InvalidArgumentException, "Algorithm must be one of `HASH_ARGON2ID, HASH_ARGON2I, HASH_ARGON2D`", 0 TSRMLS_CC);
+		zend_throw_exception(spl_ce_InvalidArgumentException, "Algorithm must be one of `HASH_ARGON2ID, HASH_ARGON2I, HASH_ARGON2D`", 0);
 	}
 
 	salt = emalloc(salt_len + 1);
