@@ -1,8 +1,9 @@
 --TEST--
-Tests Argon2 hash and verify without options
+Tests Argon2 hash and verify with salt parameter
 --FILE--
 <?php
-$hash = argon2_hash('password');
+$salt = random_bytes(32);
+$hash = argon2_hash('password', $salt);
 var_dump(argon2_verify('password', $hash));
 --EXPECT--
 bool(true)

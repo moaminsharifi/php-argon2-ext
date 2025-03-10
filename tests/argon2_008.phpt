@@ -2,9 +2,11 @@
 Verifies argon2_get_info returns correct data
 --FILE--
 <?php
-var_dump(argon2_get_info(argon2_hash('test', HASH_ARGON2ID)));
-var_dump(argon2_get_info(argon2_hash('test', HASH_ARGON2I)));
-var_dump(argon2_get_info(argon2_hash('test', HASH_ARGON2D, [
+$salt = random_bytes(32);
+
+var_dump(argon2_get_info(argon2_hash('test', $salt, HASH_ARGON2ID)));
+var_dump(argon2_get_info(argon2_hash('test', $salt, HASH_ARGON2I)));
+var_dump(argon2_get_info(argon2_hash('test', $salt, HASH_ARGON2D, [
     'm_cost' => 1<<15,
     't_cost' => 4,
     'threads' => 2
