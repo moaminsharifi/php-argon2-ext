@@ -15,6 +15,7 @@
 // Zend Argument information
 ZEND_BEGIN_ARG_INFO_EX(arginfo_argon2_hash, 0, 0, 3)
 	ZEND_ARG_INFO(0, password)
+	ZEND_ARG_INFO(0, salt)
 	ZEND_ARG_INFO(0, algorithm)
 	ZEND_ARG_INFO(0, options)
 	ZEND_ARG_INFO(0, raw)
@@ -28,6 +29,18 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_argon2_get_info, 0, 0, 1)
 	ZEND_ARG_INFO(0, hash)
 ZEND_END_ARG_INFO()
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_argon2_hash_raw, 0, 0, 2)
+    ZEND_ARG_INFO(0, password)
+    ZEND_ARG_INFO(0, salt)
+    ZEND_ARG_INFO(0, algorithm)
+    ZEND_ARG_INFO(0, options)
+    ZEND_ARG_INFO(0, hash_len)
+ZEND_END_ARG_INFO()
+
+
+
 
 static int php_password_salt_to64(const char *str, const size_t str_len, const size_t out_len, char *ret) /* {{{ */
 {
@@ -235,6 +248,132 @@ PHP_FUNCTION(argon2_hash)
 }
 /* }}} */
 
+/* {{{ proto string argon2_hash_raw(string password, string salt, int algorithm, array options, int hash_len)
+Generates a raw argon2 hash */
+PHP_FUNCTION(argon2_hash_raw)
+{
+    // Argon2 Options
+    uint32_t t_cost = ARGON2_TIME_COST;
+    uint32_t m_cost = ARGON2_MEMORY_COST;
+    uint32_t threads = ARGON2_THREADS;
+    uint32_t lanes;
+    uint32_t out_len = 32;
+    argon2_type type = EXT_HASH_ARGON2ID;
+
+    size_t salt_len;
+    size_t password_len;
+
+    char *salt;
+    char *password;
+
+    int result;
+    long argon2_type = -1;
+    zend_long hash_len = 32;
+
+    zval *option_buffer;
+    HashTable *options = 0;
+
+    ZEND_PARSE_PARAMETERS_START(2, 5)
+        Z_PARAM_STRING(password, password_len)
+        Z_PARAM_STRING(salt, salt_len)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(argon2_type)
+        Z_PARAM_ARRAY_HT(options)
+        Z_PARAM_LONG(hash_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    // Use provided hash_len if specified
+    if (hash_len > 0) {
+        out_len = (uint32_t)hash_len;
+    }
+
+    // Determine the m_cost if it was passed via options
+    if (options && (option_buffer = zend_hash_str_find(options, "m_cost", sizeof("m_cost")-1)) != NULL) {
+        m_cost = zval_get_long(option_buffer);
+    }
+
+    if (m_cost > ARGON2_MAX_MEMORY || m_cost == 0) {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Memory cost is not valid", 0);
+        RETURN_FALSE;
+    }
+
+    // Determine the t_cost if it was passed via options
+    if (options && (option_buffer = zend_hash_str_find(options, "t_cost", sizeof("t_cost")-1)) != NULL) {
+        t_cost = zval_get_long(option_buffer);
+    }
+
+    if (t_cost > ARGON2_MAX_TIME || t_cost == 0) {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Time cost is not valid", 0);
+        RETURN_FALSE;
+    }
+
+    // Determine the parallelism degree if it was passed via options
+    if (options && (option_buffer = zend_hash_str_find(options, "threads", sizeof("threads")-1)) != NULL) {
+        threads = zval_get_long(option_buffer);
+    }
+
+    if (threads > ARGON2_MAX_LANES || threads == 0) {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Number of threads is not valid", 0);
+        RETURN_FALSE;
+    }
+
+    lanes = threads;
+
+    // Sanity check the password for non-zero length
+    if (password_len == 0) {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Password must be provided", 0);
+        RETURN_FALSE;
+    }
+
+    // Sanity check the salt for non-zero length
+    if (salt_len == 0) {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Salt must be provided", 0);
+        RETURN_FALSE;
+    }
+
+    // Determine the Algorithm type
+    if (argon2_type == EXT_HASH_ARGON2ID || argon2_type == -1) {
+        type = EXT_HASH_ARGON2ID;
+    } else if (argon2_type == EXT_HASH_ARGON2I) {
+        type = EXT_HASH_ARGON2I;
+    } else if (argon2_type == EXT_HASH_ARGON2D) {
+        type = EXT_HASH_ARGON2D;
+    } else {
+        zend_throw_exception(spl_ce_InvalidArgumentException, "Algorithm must be one of `HASH_ARGON2ID, HASH_ARGON2I, HASH_ARGON2D`", 0);
+        RETURN_FALSE;
+    }
+
+    // Allocate the raw hash output buffer
+    zend_string *out = zend_string_alloc(out_len, 0);
+
+    // Generate the raw argon2_hash
+    result = argon2_hash(
+        t_cost,
+        m_cost,
+        threads,
+        password,
+        password_len,
+        salt,
+        salt_len,
+        (uint8_t *)out->val,
+        out_len,
+        NULL,  // No encoded output
+        0,     // No encoded output length
+        type,
+        ARGON2_VERSION_NUMBER
+    );
+
+    // If the hash wasn't generated, throw an exception
+    if (result != ARGON2_OK) {
+        zend_string_efree(out);
+        php_error_docref(NULL, E_WARNING, argon2_error_message(result));
+        RETURN_FALSE;
+    }
+
+    RETURN_STR(out);
+}
+/* }}} */
+
 /* {{{ proto string argon2_verify(string password, string hash)
 Generates an argon2 hash */
 PHP_FUNCTION(argon2_verify)
@@ -326,6 +465,7 @@ PHP_FUNCTION(argon2_get_info)
  */
 const zend_function_entry argon2_functions[] = {
 	PHP_FE(argon2_hash, arginfo_argon2_hash)
+    PHP_FE(argon2_hash_raw, arginfo_argon2_hash_raw)
 	PHP_FE(argon2_verify, arginfo_argon2_verify)
 	PHP_FE(argon2_get_info, arginfo_argon2_get_info)
 	PHP_FE_END
