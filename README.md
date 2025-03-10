@@ -1,7 +1,7 @@
-# PHP 8 Argon2 Extension
+# PHP8 Argon2 extension with extended functions
 
-[![TravisCI](https://img.shields.io/travis/charlesportwoodii/php-argon2-ext.svg?style=flat-square "TravisCI")](https://travis-ci.org/charlesportwoodii/php-argon2-ext)
-[![License](https://img.shields.io/badge/license-BSD-orange.svg?style=flat-square "License")](https://github.com/charlesportwoodii//php-argon2-ext/blob/master/LICENSE.md)
+[![TravisCI](https://img.shields.io/travis/charlesportwoodii/php-argon2-ext.svg?style=flat-square "TravisCI")](https://travis-ci.org/moaminsharifi/php-argon2-ext)
+[![License](https://img.shields.io/badge/license-BSD-orange.svg?style=flat-square "License")](https://github.com/moaminsharifi/php-argon2-ext/blob/master/LICENSE.md)
 
 
 This PHP extension provides a simplified interface to the [Argon2](https://github.com/P-H-C/phc-winner-argon2) algorithm, the winner of the [Password Hashing Competition](https://password-hashing.net/). Argon2 is considered the successor to bcrypt/scrypt/pbkdf methods of securely hashing passwords. This project is in no way associated with or endorsed by the PHC team.
