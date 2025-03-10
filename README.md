@@ -1,4 +1,4 @@
-# PHP Argon2 Extension
+# PHP 8 Argon2 Extension
 
 [![TravisCI](https://img.shields.io/travis/charlesportwoodii/php-argon2-ext.svg?style=flat-square "TravisCI")](https://travis-ci.org/charlesportwoodii/php-argon2-ext)
 [![License](https://img.shields.io/badge/license-BSD-orange.svg?style=flat-square "License")](https://github.com/charlesportwoodii//php-argon2-ext/blob/master/LICENSE.md)
@@ -110,6 +110,32 @@ $argon2i$v=19$m=65536,t=3,p=1$aUEvQlU2NTRwcHhVS0hqMg$+5h0P5YlWCJDKyZknJ0sAyqQtZj
 ```
 
 > If `$raw` is set to `true`, then this function will return binary output instead. This is useful for Key Derivation Functions (KDF).
+
+### Raw Hash Generation
+```php
+argon2_hash_raw(string $password, string $salt [, const $algorithm = HASH_ARGON2ID] [, array $options ] [, int $hash_len = 32 ]);
+```
+
+For applications that need raw binary output without encoding (such as key derivation), you can use the `argon2_hash_raw()` function. This function works similarly to `argon2_hash()` but always returns the raw binary hash and allows you to specify the output length.
+
+#### Example Raw Hash Usage
+
+```php
+// Generate a secure 16-byte salt
+$salt = random_bytes(16);
+
+// Generate a raw 32-byte hash for use as an encryption key
+$raw_hash = argon2_hash_raw('password', $salt, HASH_ARGON2ID);
+
+// Generate a custom length hash (64 bytes)
+$long_hash = argon2_hash_raw('password', $salt, HASH_ARGON2ID, [], 64);
+
+// Use as an encryption key
+$iv = random_bytes(16);
+$encrypted = openssl_encrypt('secret data', 'aes-256-cbc', $raw_hash, OPENSSL_RAW_DATA, $iv);
+```
+
+The `$hash_len` parameter allows you to specify the desired length of the output hash in bytes. The default is 32 bytes (256 bits).
 
 ### Validating Hashes
 ```php
