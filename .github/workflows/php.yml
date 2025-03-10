@@ -15,34 +15,34 @@ jobs:
         php-version: ['8.0', '8.1', '8.2', '8.3']
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        extensions: none
-        tools: phpize
-    
-    - name: Cache argon2 directory
-      uses: actions/cache@v3
-      with:
-        path: ext/argon2
-        key: ${{ runner.os }}-argon2-${{ hashFiles('ext/argon2/**') }}
-        restore-keys: |
-          ${{ runner.os }}-argon2-
-    
-    - name: Build argon2
-      run: |
-        cd ext/argon2
-        CFLAGS="-fPIC" make -j1 OPTTARGET=i686
-        make test
-        rm libargon2.so.1
-        cd ../..
-    
-    - name: Build and test PHP extension
-      run: |
-        phpize
-        ./configure --with-argon2
-        make
-        NO_INTERACTION=true make test
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: none
+          tools: phpize
+
+      - name: Cache argon2 directory
+        uses: actions/cache@v3
+        with:
+          path: ext/argon2
+          key: ${{ runner.os }}-argon2-${{ hashFiles('ext/argon2/**') }}
+          restore-keys: |
+            ${{ runner.os }}-argon2-
+
+      - name: Build argon2
+        run: |
+          cd ext/argon2
+          CFLAGS="-fPIC" make -j1 OPTTARGET=i686
+          make test
+          rm libargon2.so.1
+          cd ../..
+
+      - name: Build and test PHP extension
+        run: |
+          phpize
+          ./configure --with-argon2
+          make
+          NO_INTERACTION=true make test
